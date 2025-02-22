@@ -21,7 +21,7 @@ def create_order_table():
     try:
         cursor = conn.cursor()
         query = '''
-            CREATE TABLE dbo.order_details(
+            CREATE TABLE dbo.order_details_new(
                 [OrderID] UNIQUEIDENTIFIER PRIMARY KEY,
                 [CustomerName] VARCHAR(100) NOT NULL,
                 [OrderDate] DATETIME DEFAULT GETDATE(),
@@ -30,7 +30,6 @@ def create_order_table():
                 [Email] VARCHAR(150) NOT NULL,
                 [Address] VARCHAR(500) NOT NULL,
                 [City] VARCHAR(50) NOT NULL,
-                [TotalAmount] DECIMAL(10,2) NOT NULL,
                 [PaymentMode] VARCHAR(20) NOT NULL
             );
         '''

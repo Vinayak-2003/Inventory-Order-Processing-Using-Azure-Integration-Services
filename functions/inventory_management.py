@@ -24,6 +24,7 @@ def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
                         (ItemID, ItemName, ItemDescription, AvailableQuantity, Price, TotalCost, Vendor, VendorContact)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """
+                    total_quantity_cost = item_stock["quantity"] * item_stock["price"]
                     cursor.execute(insert_item,
                                 (
                                     str(uuid4()),
@@ -31,7 +32,7 @@ def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
                                     item_stock["item_description"],
                                     item_stock["quantity"],
                                     item_stock["price"],
-                                    item_stock["total_cost"],
+                                    total_quantity_cost,
                                     item_stock["vendor"],
                                     item_stock["vendor_contact"]
                                 )
