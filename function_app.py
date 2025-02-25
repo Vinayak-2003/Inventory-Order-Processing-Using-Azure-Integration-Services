@@ -1,5 +1,4 @@
 import azure.functions as func
-import logging
 
 from database import create_order_table, create_inventory_table
 from functions.order_receive import receive_order

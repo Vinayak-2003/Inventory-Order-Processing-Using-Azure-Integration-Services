@@ -1,6 +1,6 @@
 import azure.functions as func
-import logging
 from database import create_connection
+from logs.enable_logging import create_logger
 from uuid import uuid4
 import json
 
@@ -8,10 +8,11 @@ inventory = func.Blueprint()
 
 @inventory.route(route="inventory", auth_level=func.AuthLevel.ANONYMOUS)
 def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
-
+    logger = create_logger()
+    
     try:
         item_stock = req.get_json()
+        logger.info("request body is fetched")
         
         with create_connection() as conn:
             with conn.cursor() as cursor:
@@ -38,6 +39,7 @@ def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
                                 )
                             )
                     cursor.commit()
+                    logger.info(f"POST method is executed successfully to insert a new item - {item_stock['item_name']} in the inventory!!")
                     
                 # to update an item in the inventory table
                 elif req.method == "PUT":
@@ -65,6 +67,7 @@ def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
                                     )
                                 )
                         cursor.commit()
+                        logger.info(f"PUT method is executed successfully to update an item - {item_stock['item_name']} in the inventory!!")
                 
                 # to delete an item from the inventory database
                 elif req.method == "DELETE":
@@ -75,18 +78,21 @@ def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
                                 )
                             )
                     cursor.commit()
+                    logger.info(f"DELETE method is executed successfully to delete an item - {item_stock['item_name']} in the inventory!!")
                 
                 # if the method is other than [POST, UPDATE, DELETE]   
                 else:
+                    logger.error(f"{req.method} is not allowed .... change the method to [POST, PUT, DELETE] only")
                     return func.HttpResponse(
-                        json.dumps({"message": f"Method {req.method} cannot operated"})
+                        str({"message": f"Method {req.method} cannot operated .... change the method to [POST, PUT, DELETE] only"})
                     )
 
         return func.HttpResponse(
-            json.dumps({"message": f"Inventory updated with {req.method} method"})
+            str({"message": f"Inventory updated with {req.method} method"})
         )
     
     except Exception as err:
+        logger.error(f"An exception occurred while updating the inventory: {err}")
         return func.HttpResponse(
-            json.dumps({"message": f"An error occurred while updating inventory: {err}"})
+            str({"message": f"An error occurred while updating inventory: {err}"})
         )

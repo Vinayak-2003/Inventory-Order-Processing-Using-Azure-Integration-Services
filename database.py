@@ -1,22 +1,28 @@
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 import pyodbc
+from logs.enable_logging import create_logger
+import os
+from dotenv import load_dotenv
 
-TENANT_ID = "27282fdd-4c0b-4dfb-ba91-228cd83fdf71"
-DATABASE_CONNECTION_STRING = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:usecase-1.database.windows.net,1433;Database=usecase-1;Uid=vinayak;Pwd={Usecase001};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+load_dotenv(override=True)
 
-credential = DefaultAzureCredential(authority=f"https://login.microsoftonline.com/{TENANT_ID}")
+DATABASE_CONNECTION_STRING = os.environ["DATABASE_CONNECTION_STRING"]
 
 # create database connection
 def create_connection():
+    logger = create_logger()
     try:
         conn = pyodbc.connect(DATABASE_CONNECTION_STRING)
+        logger.info("database connected successfully!!")
         return conn
-    except Exception as e:
-        raise e
+    except Exception as err:
+        logger.error(f"An error occurred while establishing databse connection: {err}")
+        raise err
 
 # order details database
 def create_order_table():
+    logger = create_logger()
     conn = create_connection()
     try:
         cursor = conn.cursor()
@@ -33,19 +39,24 @@ def create_order_table():
                 [PaymentMode] VARCHAR(20) NOT NULL
             );
         '''
+        logger.info("Table order_details_new is created succefully")
         cursor.execute(query)
         cursor.commit()
     
     except pyodbc.ProgrammingError as err:
         if '42S01' in str(err):
+            logger.info("Table order_details_new is already created!!")
             pass
         else:
+            logger.error(f"An error occurred while creating order_details_new table: {err}")
             raise err
     finally:
+        logger.info("Database connection is closed successfully!!")
         conn.close()
         
 # create inventory table
 def create_inventory_table():
+    logger = create_logger()
     conn = create_connection()
     try:
         cursor = conn.cursor()
@@ -63,14 +74,17 @@ def create_inventory_table():
                 [LastUpdatedDatetime] DATETIME DEFAULT GETDATE()
             );
         '''
+        logger.info("Table inventory_details is created succefully")
         cursor.execute(query)
         cursor.commit()
-        
+    
     except pyodbc.ProgrammingError as err:
         if '42S01' in str(err):
+            logger.info("Table inventory_details is already created!!")
             pass
         else:
+            logger.error(f"An error occurred while creating inventory_details table: {err}")
             raise err
-        
     finally:
+        logger.info("Database connection is closed successfully!!")
         conn.close()

@@ -1,8 +1,8 @@
 import azure.functions as func
-import logging
 from database import create_connection
 import json
 import ast
+from logs.enable_logging import create_logger
 
 servicebus = func.Blueprint()
 
@@ -12,6 +12,8 @@ servicebus = func.Blueprint()
                                         connection="usecase1_SERVICEBUS") 
 def servicebus_topic_trigger(azservicebus: func.ServiceBusMessage):
     
+    logger = create_logger()
+    
     try:
         order = azservicebus.get_body().decode('utf-8')
         json_order = json.loads(order)
@@ -19,6 +21,8 @@ def servicebus_topic_trigger(azservicebus: func.ServiceBusMessage):
         items = json_order["products"]
         strip_items = items.strip("'")
         json_items = ast.literal_eval(strip_items)
+        
+        logger.info("Order received from service bus")
         
         with create_connection() as conn:
             with conn.cursor() as cursor:
@@ -41,7 +45,10 @@ def servicebus_topic_trigger(azservicebus: func.ServiceBusMessage):
                             cursor.commit()
                     
                     else:
-                        print(f"Item {item} not found")                        
+                        print(f"Item {item} not found")
                     
     except Exception as err:
-        raise err
+        logger.error(f"An exception occurred while receiving order on service bus: {err}")
+        func.HttpResponse(
+            str({"message": f"An error occured while executing servicebus trigger: {err}"})
+        )

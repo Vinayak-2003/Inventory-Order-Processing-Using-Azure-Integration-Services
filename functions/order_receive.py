@@ -1,9 +1,8 @@
 import azure.functions as func
-import logging
 from database import create_connection
 from uuid import uuid4
-import json
 import ast
+from logs.enable_logging import create_logger
 
 receive_order = func.Blueprint()
 
@@ -12,10 +11,12 @@ receive_order = func.Blueprint()
                                         topic_name="notification-topic")
 @receive_order.route(route="input_order", auth_level=func.AuthLevel.ANONYMOUS)
 def input_order(req: func.HttpRequest, notification: func.Out[str]) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
+    logger = create_logger()
+
     try:
 
         order = req.get_json()
+        logger.info("order is fetched from the request body")
 
         with create_connection() as conn:
             with conn.cursor() as cursor:
@@ -36,6 +37,7 @@ def input_order(req: func.HttpRequest, notification: func.Out[str]) -> func.Http
                                 )
                             )
                     cursor.commit()
+                    logger.info(f"Order for user - {order['customer_name']} is accepted!!")
                     
                     items = order["products"]
                     strip_items = items.strip("'")
@@ -45,27 +47,29 @@ def input_order(req: func.HttpRequest, notification: func.Out[str]) -> func.Http
                         check_availability_query = "SELECT AvailableQuantity FROM dbo.inventory_details WHERE ItemName = (?);"
                         cursor.execute(check_availability_query,
                                     (
-                                        order["product"]
+                                        item
                                     )
                                 )
                         row = cursor.fetchone()
                         if row[0] < quantity:
                             return func.HttpResponse(
-                                json.dumps({"message": f"{item} tock is less than the required"})
+                                {"message": f"{item} stock is less than the required"}
                             )
                         
                 else:
+                    logger.error(f"Method {req.method} cannot operated")
                     return func.HttpResponse(
-                        json.dumps({"message": f"Method {req.method} cannot operated"})
+                        str({"message": f"Method {req.method} cannot operated"})
                     )
                     
         notification.set(order)
-                
+        logger.info(f"{order} sent to service bus")
+
         return func.HttpResponse(
-            json.dumps({"message": "your order is received successfully", "order": order})
+            str({"message": "your order is received successfully", "order": order})
         )
     except Exception as err:
+        logger.error(f"An exception occurred while receiving order: {err}")
         return func.HttpResponse(
-            # json.dumps({"An error occurred": err})
-            {"An error occurred": err}
+            str({"An error occurred": err})
         )
