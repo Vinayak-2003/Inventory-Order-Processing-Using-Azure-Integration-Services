@@ -63,7 +63,7 @@ def create_inventory_table():
         query = '''
             CREATE TABLE dbo.inventory_details(
                 [ItemID] UNIQUEIDENTIFIER PRIMARY KEY,
-                [ItemName] VARCHAR(50) NOT NULL,
+                [ItemName] VARCHAR(50) UNIQUE NOT NULL,
                 [ItemDescription] VARCHAR(100) NOT NULL,
                 [AvailableQuantity] INT NOT NULL,
                 [Price] DECIMAL(6,2) NOT NULL,

@@ -2,7 +2,7 @@ import azure.functions as func
 from database import create_connection
 from logs.enable_logging import create_logger
 from uuid import uuid4
-import json
+import datetime
 
 inventory = func.Blueprint()
 
@@ -56,13 +56,14 @@ def update_inventory(req: func.HttpRequest) -> func.HttpResponse:
                     # check if the item already exists (unique item only) then update the quantity 
                     if row:
                         update_item = """
-                                    UPDATE dbo.inventory_details SET AvailableQuantity = (?), Price = (?), TotalCost = (?) WHERE ItemName = (?);
+                                    UPDATE dbo.inventory_details SET AvailableQuantity = (?), Price = (?), TotalCost = (?), LastUpdatedDatetime = (?) WHERE ItemName = (?);
                                     """
                         cursor.execute(update_item,
                                     (
                                         updated_available_quantity,
                                         item_stock["price"],
                                         updated_total_cost,
+                                        datetime.datetime.now(),
                                         item_stock["item_name"]
                                     )
                                 )
