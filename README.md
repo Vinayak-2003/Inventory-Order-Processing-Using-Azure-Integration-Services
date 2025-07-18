@@ -22,16 +22,45 @@ This system is designed to manage the inventory and order processing efficiently
 - It updates the stock count in Azure SQL Database.
 - It marks the order as completed.
 
-## Getting Started
-1. Clone the code on VS code.
+## 🚀 Getting Started
+
+1. **Clone the repository and navigate into the folder:**
+
+    ```bash
     git clone <repository_url>
     cd <repository_folder>
-2. Python must be setup locally and path must be added.
-3. Create a virtual environment as a beter approach using command
-    python -m venv {virtual_env_name}
-4. Activate the virtual environment using
-    {virtual_env_name}\scripts\activate
-5. Install the dependencies using
+    ```
+
+2. **Ensure Python is installed** locally and added to the system PATH.
+
+3. **Create a virtual environment (recommended):**
+
+    ```bash
+    python -m venv <virtual_env_name>
+    ```
+
+4. **Activate the virtual environment:**
+
+    - On **Windows**:
+      ```bash
+      <virtual_env_name>\Scripts\activate
+      ```
+
+    - On **macOS/Linux**:
+      ```bash
+      source <virtual_env_name>/bin/activate
+      ```
+
+5. **Install all dependencies:**
+
+    ```bash
     pip install -r requirements.txt
-6. Start the function app using 
+    ```
+
+6. **Start from the main entery point as:**
+
+    ```bash
     func start
+    ```
+
+---
